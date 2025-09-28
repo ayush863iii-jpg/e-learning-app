@@ -1,0 +1,273 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Learning Platform</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(270deg, #0062E6, #33AEFF, #00c6ff);
+      background-size: 600% 600%;
+      animation: gradientBG 12s ease infinite;
+      color: #333;
+      overflow-x: hidden;
+    }
+    @keyframes gradientBG {
+      0% {background-position: 0% 50%;}
+      50% {background-position: 100% 50%;}
+      100% {background-position: 0% 50%;}
+    }
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.1);
+      animation: float 15s infinite;
+      z-index: 0;
+    }
+    .circle:nth-child(1){width:200px;height:200px;top:10%;left:15%;}
+    .circle:nth-child(2){width:300px;height:300px;top:40%;left:70%;}
+    .circle:nth-child(3){width:150px;height:150px;bottom:20%;left:30%;}
+    @keyframes float {
+      0%{transform:translateY(0) rotate(0);}
+      50%{transform:translateY(-40px) rotate(180deg);}
+      100%{transform:translateY(0) rotate(360deg);}
+    }
+
+    header {
+      display:flex;justify-content:space-between;align-items:center;
+      padding:15px 40px;background:rgba(0,0,0,0.4);color:#fff;
+      position:sticky;top:0;z-index:1000;backdrop-filter:blur(10px);
+    }
+    nav {
+      display:flex;justify-content:center;
+      background:rgba(0,0,0,0.6);backdrop-filter:blur(10px);
+    }
+    nav button {
+      background:transparent;border:none;color:white;
+      padding:14px 20px;cursor:pointer;font-size:16px;
+      transition:0.3s;
+    }
+    nav button:hover{background:rgba(255,255,255,0.2);}
+    .container {padding:40px;text-align:center;z-index:1;}
+    .dashboard{display:none;}
+    .active{display:block;}
+
+    .card {
+      display:inline-block;width:270px;margin:20px;padding:25px;
+      background:rgba(255,255,255,0.9);border-radius:18px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.2);transition:0.4s;
+    }
+    .card:hover{transform:translateY(-8px) scale(1.04);}
+    .card img{width:90px;height:90px;margin-bottom:10px;}
+
+    /* Start Page */
+    #welcomePage {
+      display:flex;flex-direction:column;justify-content:center;
+      align-items:center;height:100vh;text-align:center;color:white;
+    }
+    #welcomePage h1{font-size:42px;margin-bottom:20px;}
+    #welcomePage button{
+      padding:14px 32px;font-size:20px;border:none;border-radius:25px;
+      background:#fff;color:#0062E6;cursor:pointer;transition:0.3s;
+    }
+    #welcomePage button:hover{background:#004aad;color:#fff;}
+
+    /* Auth */
+    #authPage{display:none;height:100vh;display:flex;justify-content:center;align-items:center;}
+    .auth-box {
+      width:370px;background:rgba(255,255,255,0.15);
+      padding:30px;border-radius:15px;backdrop-filter:blur(8px);
+      color:white;text-align:center;box-shadow:0 8px 20px rgba(0,0,0,0.3);
+    }
+    .auth-box input{width:100%;padding:12px;margin:10px 0;border:none;border-radius:8px;}
+    .auth-box button{padding:12px 25px;border:none;border-radius:8px;background:#33AEFF;color:white;cursor:pointer;}
+    .switch{margin-top:10px;cursor:pointer;text-decoration:underline;}
+
+    /* Chatbox */
+    #chatBox {width:90%;max-width:500px;margin:20px auto;padding:15px;background:white;border-radius:12px;}
+    #chatLog {height:150px;overflow-y:auto;border:1px solid #ccc;margin-bottom:10px;padding:10px;}
+    #chatInput {width:80%;padding:8px;}
+    #sendBtn {padding:9px 15px;background:#0062E6;color:white;border:none;cursor:pointer;border-radius:8px;}
+
+    /* Dark mode */
+    body.dark{background:#111;color:white;}
+    body.dark header,body.dark nav{background:rgba(255,255,255,0.1);}
+    body.dark .card{background:rgba(0,0,0,0.8);color:white;}
+  </style>
+</head>
+<body>
+  <div class="circle"></div><div class="circle"></div><div class="circle"></div>
+
+  <!-- Welcome -->
+  <div id="welcomePage">
+    <h1>📘 Digital Learning</h1>
+    <button onclick="goToAuth()">Start</button>
+  </div>
+
+  <!-- Login/Register -->
+   async function registerUser() {
+  const username = document.querySelector("#registerBox input[placeholder='Username']").value;
+  const email = document.querySelector("#registerBox input[placeholder='Email']").value;
+  const password = document.querySelector("#registerBox input[placeholder='Password']").value;
+
+  const res = await fetch("http://localhost:5000/api/auth/register", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, email, password }),
+  });
+  const data = await res.json();
+  alert(data.msg);
+}
+
+async function loginUser() {
+  const email = document.querySelector("#loginBox input[placeholder='Username']").value;
+  const password = document.querySelector("#loginBox input[placeholder='Password']").value;
+
+  const res = await fetch("http://localhost:5000/api/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  const data = await res.json();
+  if (data.token) {
+    localStorage.setItem("token", data.token);
+    goToMain();
+  } else {
+    alert(data.msg);
+  }
+}
+
+ 
+
+  <!-- Main App -->
+  <div id="mainApp" style="display:none;">
+    <header>
+      <h1>📘 Digital Learning Platform</h1>
+      <div>
+        <button onclick="toggleMode()">🌙</button>
+        <button onclick="startVoice()">🎙️</button>
+      </div>
+    </header>
+    <nav>
+      <button onclick="showDashboard('student')">Student</button>
+      <button onclick="showDashboard('teacher')">Teacher</button>
+      <button onclick="showDashboard('collab')">Collab</button>
+      <button onclick="showDashboard('free')">Free</button>
+      <button onclick="showDashboard('progress')">Progress</button>
+      <button onclick="showDashboard('leader')">Leaderboard</button>
+      <button onclick="showDashboard('chat')">Chat</button>
+    </nav>
+
+    <div class="container">
+      <!-- Student -->
+      <div id="student" class="dashboard active">
+        <h2>🎓 Student Dashboard</h2>
+        <div class="card"><img src="https://cdn-icons-png.flaticon.com/512/3135/3135755.png"><p>Notes (Download)</p></div>
+        <div class="card"><img src="https://cdn-icons-png.flaticon.com/512/3262/3262128.png"><p>Quiz</p></div>
+        <div class="card"><img src="https://cdn-icons-png.flaticon.com/512/2886/2886665.png"><p>Lecture Videos</p>
+          <iframe width="250" height="150" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+        </div>
+        <div class="card"><img src="https://cdn-icons-png.flaticon.com/512/2910/2910768.png"><p>Attendance</p>
+          <button onclick="markAttendance()">Mark Present</button>
+        </div>
+        <div class="card"><img src="https://cdn-icons-png.flaticon.com/512/1828/1828911.png"><p>Class Schedule</p></div>
+      </div>
+
+      <!-- Teacher -->
+      <div id="teacher" class="dashboard">
+        <h2>👩‍🏫 Teacher Dashboard</h2>
+        <div class="card"><p>Upload Material</p></div>
+        <div class="card"><p>Mark Attendance</p></div>
+        <div class="card"><p>Help Students</p></div>
+      </div>
+
+      <!-- Collab -->
+      <div id="collab" class="dashboard"><h2>🤝 Collaboration</h2><p>Shared Notes & Videos</p></div>
+
+      <!-- Free -->
+      <div id="free" class="dashboard"><h2>📂 Free Materials</h2><p>Our & Other Sources</p></div>
+
+      <!-- Progress -->
+      <div id="progress" class="dashboard"><h2>📈 Progress</h2><p>Quizzes: 5 | Videos: 12 | Attendance: <span id="attCount">0</span></p></div>
+
+      <!-- Leaderboard -->
+      <div id="leader" class="dashboard"><h2>🏆 Leaderboard</h2><ol><li>Ravi - 95%</li><li>Priya - 90%</li><li>Amit - 85%</li></ol></div>
+
+      <!-- Chat -->
+      <div id="chat" class="dashboard">
+        <h2>💬 AI Chatbox</h2>
+        <div id="chatBox">
+          <div id="chatLog"></div>
+          <input id="chatInput" placeholder="Type message...">
+          <button id="sendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    fetch("http://localhost:5000/api/auth/register").then(response => response.json()).then(
+      data => {
+        document.getElementById('backend-message').innerText=data.message;}).catch(error =>{console.error('Error fetching data:',error);
+        document.getElementById('backend-message').innerText='Failed to load data.';}
+        )
+      
+      
+    
+    function goToAuth(){document.getElementById('welcomePage').style.display='none';document.getElementById('authPage').style.display='flex';}
+    function toggleAuth(showId){document.getElementById('loginBox').style.display='none';document.getElementById('registerBox').style.display='none';document.getElementById(showId).style.display='block';}
+    function goToMain(){document.getElementById('authPage').style.display='none';document.getElementById('mainApp').style.display='block';}
+    function showDashboard(id){document.querySelectorAll('.dashboard').forEach(d=>d.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+    // Attendance
+    let attendance = localStorage.getItem("attendance")||0;
+    document.getElementById("attCount").innerText=attendance;
+    function markAttendance(){attendance++;localStorage.setItem("attendance",attendance);document.getElementById("attCount").innerText=attendance;alert("Attendance marked!");}
+
+    // Dark mode
+    function toggleMode(){document.body.classList.toggle("dark");}
+
+    // Chat AI
+    document.getElementById("sendBtn").addEventListener("click", async () => {
+  let input = document.getElementById("chatInput").value;
+  let log = document.getElementById("chatLog");
+
+  if (!input) return;
+
+  log.innerHTML += "<div><b>You:</b> " + input + "</div>";
+
+  // Send message to backend
+  const res = await fetch("http://localhost:5000/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: input }),
+  });
+
+  const data = await res.json();
+  log.innerHTML += "<div><b>AI:</b> " + data.reply + "</div>";
+
+  document.getElementById("chatInput").value = "";
+  log.scrollTop = log.scrollHeight;
+});
+
+
+    // Voice
+    function startVoice(){
+      let rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+      rec.onresult=function(e){
+        let cmd=e.results[0][0].transcript.toLowerCase();
+        if(cmd.includes("student"))showDashboard("student");
+        else if(cmd.includes("teacher"))showDashboard("teacher");
+        else if(cmd.includes("progress"))showDashboard("progress");
+        else if(cmd.includes("chat"))showDashboard("chat");
+        alert("Voice Command: "+cmd);
+      };
+      rec.start();
+    }
+    
+  </script>
+</body>
+</html>
